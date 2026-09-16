@@ -1,4 +1,6 @@
 const express = require('express');
+const db = require('./database/database');
+const usuarioRoutes = require('./routes/usuarioRoutes');
 
 const app = express();
 
@@ -9,5 +11,7 @@ app.get('/', (req, res) => {
         mensagem: 'API de Gerenciamento de Denúncias Urbanas funcionando!'
     });
 });
+
+app.use('/usuarios', usuarioRoutes);
 
 module.exports = app;
