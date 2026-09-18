@@ -14,7 +14,7 @@ const DenunciaCategoria = {
         );
     },
 
-    listarCategorias(denuncia_id) {
+    listarPorDenuncia(denuncia_id) {
         return db.prepare(`
             SELECT c.*
             FROM categorias c
@@ -28,7 +28,7 @@ const DenunciaCategoria = {
         return db.prepare(`
             DELETE FROM denuncia_categoria
             WHERE denuncia_id = ?
-              AND categoria_id = ?
+            AND categoria_id = ?
         `).run(
             denuncia_id,
             categoria_id

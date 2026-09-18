@@ -9,12 +9,15 @@ const situacoes = [
 ];
 
 const Status = {
+
     listar() {
         return db.prepare(`
             SELECT *
             FROM status
+            ORDER BY id
         `).all();
     },
+
 
     buscarPorId(id) {
         return db.prepare(`
@@ -24,27 +27,24 @@ const Status = {
         `).get(id);
     },
 
-    criar({ situacao, descricao }) {
-        if (!situacoes.includes(situacao)) {
-            throw new Error('Situação inválida');
-        }
 
+    criar(dados) {
         const resultado = db.prepare(`
-            INSERT INTO status (situacao, descricao)
+            INSERT INTO status (
+                situacao,
+                descricao
+            )
             VALUES (?, ?)
         `).run(
-            situacao,
-            descricao || null
+            dados.situacao || 'aberto',
+            dados.descricao || null
         );
 
         return this.buscarPorId(resultado.lastInsertRowid);
     },
 
-    atualizar(id, { situacao, descricao }) {
-        if (situacao && !situacoes.includes(situacao)) {
-            throw new Error('Situação inválida');
-        }
 
+    atualizar(id, dados) {
         db.prepare(`
             UPDATE status
             SET situacao = ?,
@@ -52,13 +52,14 @@ const Status = {
                 updated_at = CURRENT_TIMESTAMP
             WHERE id = ?
         `).run(
-            situacao,
-            descricao || null,
+            dados.situacao,
+            dados.descricao || null,
             id
         );
 
         return this.buscarPorId(id);
     },
+
 
     excluir(id) {
         return db.prepare(`
@@ -67,6 +68,7 @@ const Status = {
         `).run(id);
     }
 };
+
 
 module.exports = {
     Status,

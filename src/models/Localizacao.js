@@ -5,6 +5,7 @@ const Localizacao = {
         return db.prepare(`
             SELECT *
             FROM localizacoes
+            ORDER BY id
         `).all();
     },
 
@@ -16,17 +17,7 @@ const Localizacao = {
         `).get(id);
     },
 
-    criar({
-        logradouro,
-        numero,
-        complemento,
-        bairro,
-        cidade,
-        estado,
-        cep,
-        latitude,
-        longitude
-    }) {
+    criar(dados) {
         const resultado = db.prepare(`
             INSERT INTO localizacoes (
                 logradouro,
@@ -41,31 +32,21 @@ const Localizacao = {
             )
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         `).run(
-            logradouro,
-            numero || null,
-            complemento || null,
-            bairro,
-            cidade,
-            estado,
-            cep || null,
-            latitude || null,
-            longitude || null
+            dados.logradouro,
+            dados.numero || null,
+            dados.complemento || null,
+            dados.bairro,
+            dados.cidade,
+            dados.estado,
+            dados.cep || null,
+            dados.latitude || null,
+            dados.longitude || null
         );
 
         return this.buscarPorId(resultado.lastInsertRowid);
     },
 
-    atualizar(id, {
-        logradouro,
-        numero,
-        complemento,
-        bairro,
-        cidade,
-        estado,
-        cep,
-        latitude,
-        longitude
-    }) {
+    atualizar(id, dados) {
         db.prepare(`
             UPDATE localizacoes
             SET logradouro = ?,
@@ -79,15 +60,15 @@ const Localizacao = {
                 longitude = ?
             WHERE id = ?
         `).run(
-            logradouro,
-            numero || null,
-            complemento || null,
-            bairro,
-            cidade,
-            estado,
-            cep || null,
-            latitude || null,
-            longitude || null,
+            dados.logradouro,
+            dados.numero || null,
+            dados.complemento || null,
+            dados.bairro,
+            dados.cidade,
+            dados.estado,
+            dados.cep || null,
+            dados.latitude || null,
+            dados.longitude || null,
             id
         );
 

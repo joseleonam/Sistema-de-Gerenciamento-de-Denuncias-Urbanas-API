@@ -3,29 +3,40 @@ const db = require('../database/database');
 const Usuario = {
     listar() {
         return db.prepare(`
-            SELECT id, nome, email, cpf, telefone, ativo, created_at
+            SELECT *
             FROM usuarios
+            ORDER BY id
         `).all();
     },
 
     buscarPorId(id) {
         return db.prepare(`
-            SELECT id, nome, email, cpf, telefone, ativo, created_at
+            SELECT *
             FROM usuarios
             WHERE id = ?
         `).get(id);
     },
 
-    criar({ nome, email, cpf, telefone }) {
+    criar(dados) {
         const resultado = db.prepare(`
-            INSERT INTO usuarios (nome, email, cpf, telefone)
+            INSERT INTO usuarios (
+                nome,
+                email,
+                cpf,
+                telefone
+            )
             VALUES (?, ?, ?, ?)
-        `).run(nome, email, cpf, telefone || null);
+        `).run(
+            dados.nome,
+            dados.email,
+            dados.cpf,
+            dados.telefone || null
+        );
 
         return this.buscarPorId(resultado.lastInsertRowid);
     },
 
-    atualizar(id, { nome, email, telefone, ativo }) {
+    atualizar(id, dados) {
         db.prepare(`
             UPDATE usuarios
             SET nome = ?,
@@ -34,10 +45,10 @@ const Usuario = {
                 ativo = ?
             WHERE id = ?
         `).run(
-            nome,
-            email,
-            telefone || null,
-            ativo,
+            dados.nome,
+            dados.email,
+            dados.telefone || null,
+            dados.ativo,
             id
         );
 

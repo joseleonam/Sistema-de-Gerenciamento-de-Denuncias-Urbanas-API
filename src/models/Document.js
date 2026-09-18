@@ -5,6 +5,7 @@ const Document = {
         return db.prepare(`
             SELECT *
             FROM documents
+            ORDER BY id
         `).all();
     },
 
@@ -16,21 +17,15 @@ const Document = {
         `).get(id);
     },
 
-    listarPorDenuncia(denunciaId) {
+    listarPorDenuncia(denuncia_id) {
         return db.prepare(`
             SELECT *
             FROM documents
             WHERE denuncia_id = ?
-        `).all(denunciaId);
+        `).all(denuncia_id);
     },
 
-    criar({
-        original_filename,
-        content_type,
-        extension,
-        size_bytes,
-        denuncia_id
-    }) {
+    criar(dados) {
         const resultado = db.prepare(`
             INSERT INTO documents (
                 original_filename,
@@ -41,11 +36,11 @@ const Document = {
             )
             VALUES (?, ?, ?, ?, ?)
         `).run(
-            original_filename,
-            content_type,
-            extension,
-            size_bytes,
-            denuncia_id || null
+            dados.original_filename,
+            dados.content_type,
+            dados.extension,
+            dados.size_bytes,
+            dados.denuncia_id || null
         );
 
         return this.buscarPorId(resultado.lastInsertRowid);

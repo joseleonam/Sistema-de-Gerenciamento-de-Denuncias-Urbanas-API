@@ -5,6 +5,7 @@ const Atendimento = {
         return db.prepare(`
             SELECT *
             FROM atendimentos
+            ORDER BY id
         `).all();
     },
 
@@ -16,23 +17,15 @@ const Atendimento = {
         `).get(id);
     },
 
-    listarPorDenuncia(denunciaId) {
+    listarPorDenuncia(denuncia_id) {
         return db.prepare(`
             SELECT *
             FROM atendimentos
             WHERE denuncia_id = ?
-        `).all(denunciaId);
+        `).all(denuncia_id);
     },
 
-    criar({
-        orgao_responsavel,
-        responsavel_nome,
-        observacao,
-        data_inicio,
-        data_conclusao,
-        custo_estimado,
-        denuncia_id
-    }) {
+    criar(dados) {
         const resultado = db.prepare(`
             INSERT INTO atendimentos (
                 orgao_responsavel,
@@ -45,13 +38,13 @@ const Atendimento = {
             )
             VALUES (?, ?, ?, ?, ?, ?, ?)
         `).run(
-            orgao_responsavel,
-            responsavel_nome || null,
-            observacao || null,
-            data_inicio || new Date().toISOString(),
-            data_conclusao || null,
-            custo_estimado || null,
-            denuncia_id
+            dados.orgao_responsavel,
+            dados.responsavel_nome || null,
+            dados.observacao || null,
+            dados.data_inicio || new Date().toISOString(),
+            dados.data_conclusao || null,
+            dados.custo_estimado || null,
+            dados.denuncia_id
         );
 
         return this.buscarPorId(resultado.lastInsertRowid);
