@@ -1,7 +1,11 @@
 const db = require('../database/database');
 
 const Localizacao = require('./Localizacao');
+const Usuario = require('./Usuario');
 const { Status } = require('./Status');
+const DenunciaCategoria = require('./DenunciaCategoria');
+const Atendimento = require('./Atendimento');
+
 
 const prioridades = [
     'baixa',
@@ -18,11 +22,13 @@ const Denuncia = {
     // ==========================
 
     listar() {
+
         return db.prepare(`
             SELECT *
             FROM denuncias
             ORDER BY created_at DESC
         `).all();
+
     },
 
 
@@ -31,11 +37,13 @@ const Denuncia = {
     // ==========================
 
     buscarPorId(id) {
+
         return db.prepare(`
             SELECT *
             FROM denuncias
             WHERE id = ?
         `).get(id);
+
     },
 
 
@@ -46,7 +54,7 @@ const Denuncia = {
     criar(dados) {
 
         // --------------------------
-        // Cria a localização
+        // Cria localização
         // --------------------------
 
         const localizacao = Localizacao.criar(
@@ -57,7 +65,7 @@ const Denuncia = {
 
 
         // --------------------------
-        // Cria o status
+        // Cria status
         // --------------------------
 
         const status = Status.criar({
@@ -67,7 +75,7 @@ const Denuncia = {
 
 
         // --------------------------
-        // Cria a denúncia
+        // Cria denúncia
         // --------------------------
 
         const resultado = db.prepare(`
@@ -97,37 +105,25 @@ const Denuncia = {
         // Relaciona categorias
         // --------------------------
 
-        if (
-            dados.categoria_ids &&
-            dados.categoria_ids.length > 0
-        ) {
-
-            const inserirCategoria = db.prepare(`
-                INSERT INTO denuncia_categoria (
-                    denuncia_id,
-                    categoria_id
-                )
-                VALUES (?, ?)
-            `);
-
+        if (dados.categoria_ids) {
 
             for (const categoriaId of dados.categoria_ids) {
 
-                inserirCategoria.run(
+                DenunciaCategoria.adicionar(
                     denunciaId,
                     categoriaId
                 );
-            }
-        }
 
+            }
+
+        }
 
         // --------------------------
         // Retorna completa
         // --------------------------
 
-        return this.listarComRelacionamentos(
-            denunciaId
-        );
+        return this.listarComRelacionamentos(denunciaId);
+
     },
 
 
@@ -173,6 +169,7 @@ const Denuncia = {
                 denuncia.localizacao_id,
                 dados.localizacao
             );
+
         }
 
 
@@ -182,32 +179,23 @@ const Denuncia = {
 
         if (dados.categoria_ids !== undefined) {
 
-            db.prepare(`
-                DELETE FROM denuncia_categoria
-                WHERE denuncia_id = ?
-            `).run(id);
-
-
-            const inserirCategoria = db.prepare(`
-                INSERT INTO denuncia_categoria (
-                    denuncia_id,
-                    categoria_id
-                )
-                VALUES (?, ?)
-            `);
+            DenunciaCategoria.removerPorDenuncia(id);
 
 
             for (const categoriaId of dados.categoria_ids) {
 
-                inserirCategoria.run(
-                    id,
-                    categoriaId
-                );
+                DenunciaCategoria.adicionar(id,categoriaId);
+
             }
+
         }
 
+        // --------------------------
+        // Retorna completa
+        // --------------------------
 
         return this.listarComRelacionamentos(id);
+
     },
 
 
@@ -224,30 +212,38 @@ const Denuncia = {
         }
 
 
-        // Remove categorias relacionadas
-        db.prepare(`
-            DELETE FROM denuncia_categoria
-            WHERE denuncia_id = ?
-        `).run(id);
+        // --------------------------
+        // Remove categorias
+        // --------------------------
+
+        DenunciaCategoria.excluirPorDenuncia(id);
 
 
-        // Remove a denúncia
+        // --------------------------
+        // Remove denúncia
+        // --------------------------
+
         const resultado = db.prepare(`
             DELETE FROM denuncias
             WHERE id = ?
         `).run(id);
 
 
-        // Remove a localização
+        // --------------------------
+        // Remove localização
+        // --------------------------
+
         if (denuncia.localizacao_id) {
 
             Localizacao.excluir(
                 denuncia.localizacao_id
             );
+
         }
 
 
         return resultado;
+
     },
 
 
@@ -268,11 +264,9 @@ const Denuncia = {
         // Usuário
         // --------------------------
 
-        const usuario = db.prepare(`
-            SELECT id, nome, email, telefone
-            FROM usuarios
-            WHERE id = ?
-        `).get(denuncia.usuario_id);
+        const usuario = Usuario.buscarPorId(
+            denuncia.usuario_id
+        );
 
 
         // --------------------------
@@ -297,13 +291,13 @@ const Denuncia = {
         // Categorias
         // --------------------------
 
-        const categorias = db.prepare(`
-            SELECT c.*
-            FROM categorias c
-            INNER JOIN denuncia_categoria dc
-                ON dc.categoria_id = c.id
-            WHERE dc.denuncia_id = ?
-        `).all(id);
+        const categorias =
+            DenunciaCategoria.listarCategoriasPorDenuncia(id);
+
+        // --------------------------
+        // Atendimentos
+        // --------------------------
+        const atendimentos = Atendimento.listarPorDenuncia(id);
 
 
         return {
@@ -311,9 +305,12 @@ const Denuncia = {
             usuario,
             localizacao,
             status,
-            categorias
+            categorias,
+            atendimentos
         };
+
     }
+
 };
 
 

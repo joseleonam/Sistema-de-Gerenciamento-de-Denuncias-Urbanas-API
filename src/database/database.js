@@ -1,6 +1,6 @@
 const Database = require('better-sqlite3');
 
-const db = new Database('denuncias.db');
+const db = new Database('Banco.db');
 
 db.pragma('foreign_keys = ON');
 
@@ -115,6 +115,35 @@ db.exec(`
 
         FOREIGN KEY (categoria_id)
             REFERENCES categorias(id)
+            ON DELETE CASCADE
+    );
+`);
+
+
+// ==========================
+// ATENDIMENTOS
+// ==========================
+
+db.exec(`
+    CREATE TABLE IF NOT EXISTS atendimentos (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+        denuncia_id INTEGER NOT NULL,
+
+        orgao_responsavel TEXT NOT NULL,
+
+        responsavel_nome TEXT,
+
+        observacao TEXT,
+
+        data_inicio TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+        data_conclusao TEXT,
+
+        custo_estimado REAL,
+
+        FOREIGN KEY (denuncia_id)
+            REFERENCES denuncias(id)
             ON DELETE CASCADE
     );
 `);

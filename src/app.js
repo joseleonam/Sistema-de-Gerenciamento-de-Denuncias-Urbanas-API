@@ -5,6 +5,7 @@ const categoriaRoutes = require('./routes/categoriaRoutes');
 const localizacaoRoutes = require('./routes/localizacaoRoutes');
 const statusRoutes = require('./routes/statusRoutes');
 const denunciaRoutes = require('./routes/denunciaRoutes');
+const atendimentoRoutes = require('./routes/atendimentoRoutes');
 
 const app = express();
 
@@ -21,5 +22,6 @@ app.use('/categorias', categoriaRoutes);
 app.use('/localizacoes', localizacaoRoutes);
 app.use('/status', statusRoutes);
 app.use('/denuncias', denunciaRoutes);
+app.use('/atendimentos', atendimentoRoutes);
 
 module.exports = app;
